@@ -55,40 +55,54 @@ double Neutron::SampleLength()
 	return length;
 }
 //________________________________________________________________________
-void Neutron::SetPositions(double x, double y)
+double Neutron::SampleDeviationAngle()
 {
-    Neutron_PosX = x;
-    Neutron_PosY = y;
+    double A = Neutron_Material->GetMassNumber();
+
+    // Isotropic scattering in Center of Mass frame
+    // mu = cos(theta_CM) is sampled uniformly in [-1, 1]
+    double mu = 2.0 * (double(rand()) / double(RAND_MAX)) - 1.0;
+
+    // cos of scattering angle in LAB frame
+    double cos_theta_lab = (1.0 + A * mu) / sqrt(1.0 + A*A + 2.0 * A * mu);
+    double theta_lab = acos(cos_theta_lab);
+
+    // In 2D, the deviation can be positive or negative with equal probability
+    if (rand() > RAND_MAX / 2)
+        return theta_lab;
+    else
+        return -theta_lab;
 }
 //________________________________________________________________________
-void Neutron::SetCumulatedAngle(double theta)
+void Neutron::InitTrajectory()
 {
-    Neutron_CumulatedAngle += theta;
-}
-//________________________________________________________________________
-void Neutron::SetDiffuNb()
-{
-    Neutron_DiffusionNumber ++;
-}
-//________________________________________________________________________
-void Neutron::ResetParameters()
-{
-    Neutron_Emax = InitialNeutronEnergy;
-    Neutron_Emin = 1;
-    
     Neutron_DiffusionNumber = 0;
-    Neutron_CumulatedAngle = 0;
-    
-    Neutron_PosX = 0;  
+    Neutron_PosX = 0;
     Neutron_PosY = 0;
+    Neutron_CumulatedAngle = 0;
 }
-//_______________________________________________________________________
-int Neutron::GetDiffuNumber()
+//________________________________________________________________________
+int Neutron::BuildTrajectory()
 {
+
+    double energy = Neutron_Emax;
+    while (energy > Neutron_Emin)
+    {
+        Neutron_DiffusionNumber++;
+
+        double length = SampleLength();
+        double deviation = SampleDeviationAngle();
+        Neutron_CumulatedAngle += deviation;
+
+        Neutron_PosX += length * cos(Neutron_CumulatedAngle);
+        Neutron_PosY += length * sin(Neutron_CumulatedAngle);
+
+        WriteCurrentPosition();
+
+        // Simple energy loss model (can be refined)
+        ; 
+    }
+
     return Neutron_DiffusionNumber;
 }
-//_______________________________________________________________________
-
-
-
-
+//________________________________________________________________________
