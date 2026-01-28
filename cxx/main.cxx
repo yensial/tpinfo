@@ -46,14 +46,140 @@ int main()
     double psi = 0;
     double x = el*cos(psi);
     double y = el*sin(psi);
+
     cout << "the neutron is now in x = " << x << " and y = " << y << " (position of the first diffusion)" << endl;
     
     // step1 (TO DO BELOW) : adds a second standard segment (on which you will loop for a first complete trajectory in step2)
+
+    double EpsilonTheta = double(rand()) / RAND_MAX;
+
+    double CosTheta = 2*EpsilonTheta - 1;
     
+    SlowingDownNeutron->SetCumulatedAngle(acos(CosTheta));
+
+    double EnergyStart = StartEnergy;      
+    double EnergyFin = (EnergyStart * 0.5 * (1 + CosTheta));                      
     
+    SlowingDownNeutron->InitEnergies(EnergyStart, EnergyFin);
+
+    double Positive = (double(rand()) / RAND_MAX) * 100;
+
+    el = SlowingDownNeutron->SampleLength();
     
+    if(Positive <= 50)
+    {
+        psi = acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
+    }
+    else
+    {
+        psi = -acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
+    }
+
+    x = el*cos(psi);
+    y = el*sin(psi);
+
+    SlowingDownNeutron->SetPositions(x,y);
+
+    SlowingDownNeutron->SetDiffuNb();
+    
+    SlowingDownNeutron->WriteCurrentPosition();
+
+    // step2 (TO DO BELOW) : loop on the step1 for a complete trajectory
+
+    while(EnergyFin > FinalEnergy)
+    {
+
+        SlowingDownNeutron->SetPositions(x,y);
+
+        SlowingDownNeutron->SetDiffuNb();
+
+        SlowingDownNeutron->WriteCurrentPosition();
+
+        EpsilonTheta = double(rand()) / RAND_MAX;
+
+        CosTheta = 2*EpsilonTheta - 1;
+    
+        EnergyStart = EnergyFin;      
+        EnergyFin = (EnergyStart * 0.5 * (1 + CosTheta));                         
+    
+        SlowingDownNeutron->InitEnergies(StartEnergy, FinalEnergy);
+
+        Positive = (double(rand()) / RAND_MAX) * 100;
+
+        el = SlowingDownNeutron->SampleLength();
+    
+        if(Positive <= 50)
+        {
+            psi = acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
+        }
+        else
+        {
+            psi = -acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
+        }
+
+        x = el*cos(psi);
+        y = el*sin(psi);
+    
+    }
 
 
+    // step3 : loop on the step2 and mean on the diffusion number
 
+    double mean = 0;
+
+    for(int i = 0; i < NombreDeTrajectoire; i++)
+    {
+        SlowingDownNeutron->ResetParameters();
+
+        el = SlowingDownNeutron->SampleLength();
+        psi = 0;
+        x = el*cos(psi);
+        y = el*sin(psi);
+
+        while(EnergyFin > FinalEnergy)
+        {
+
+            SlowingDownNeutron->SetPositions(x,y);
+
+            SlowingDownNeutron->SetDiffuNb();
+
+            SlowingDownNeutron->WriteCurrentPosition();
+
+            EpsilonTheta = double(rand()) / RAND_MAX;
+
+            CosTheta = 2*EpsilonTheta - 1;
+    
+            EnergyStart = EnergyFin;      
+            EnergyFin = (EnergyStart * 0.5 * (1 + CosTheta));
+            
+            cout << "energie " << EnergyFin << endl;
+    
+            SlowingDownNeutron->InitEnergies(StartEnergy, FinalEnergy);
+
+            Positive = (double(rand()) / RAND_MAX) * 100;
+
+            el = SlowingDownNeutron->SampleLength();
+    
+            if(Positive <= 50)
+            {
+             psi = acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
+            }
+            else
+            {
+               psi = -acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
+            }
+
+            x = el*cos(psi);
+            y = el*sin(psi);
+    
+        }
+
+        mean += ( SlowingDownNeutron->GetDiffuNumber() );
+    }
+
+    mean /= NombreDeTrajectoire;
+
+    cout << "Le nombre moyen d'impact est " << mean << endl;
 
 }
+

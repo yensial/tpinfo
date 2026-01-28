@@ -19,6 +19,7 @@ using namespace std;
 
 const double Pi = M_PI;
 const double InitialNeutronEnergy = 1.0e6;
+const double NombreDeTrajectoire = 2;
 
 
 

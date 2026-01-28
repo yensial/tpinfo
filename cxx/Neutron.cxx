@@ -55,11 +55,39 @@ double Neutron::SampleLength()
 	return length;
 }
 //________________________________________________________________________
-
-
-
-
-
+void Neutron::SetPositions(double x, double y)
+{
+    Neutron_PosX = x;
+    Neutron_PosY = y;
+}
+//________________________________________________________________________
+void Neutron::SetCumulatedAngle(double theta)
+{
+    Neutron_CumulatedAngle += theta;
+}
+//________________________________________________________________________
+void Neutron::SetDiffuNb()
+{
+    Neutron_DiffusionNumber ++;
+}
+//________________________________________________________________________
+void Neutron::ResetParameters()
+{
+    Neutron_Emax = InitialNeutronEnergy;
+    Neutron_Emin = 1;
+    
+    Neutron_DiffusionNumber = 0;
+    Neutron_CumulatedAngle = 0;
+    
+    Neutron_PosX = 0;  
+    Neutron_PosY = 0;
+}
+//_______________________________________________________________________
+int Neutron::GetDiffuNumber()
+{
+    return Neutron_DiffusionNumber;
+}
+//_______________________________________________________________________
 
 
 
