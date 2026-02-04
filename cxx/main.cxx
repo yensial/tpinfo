@@ -36,7 +36,7 @@ int main()
     
     SlowingDownNeutron->InitEnergies(StartEnergy, FinalEnergy);
     
-    SlowingDownNeutron->BuildTrajectory(StartEnergy, FinalEnergy); //Step 1+2
+    SlowingDownNeutron->BuildTrajectory(SlowingDownNeutron, StartEnergy, FinalEnergy); //Step 1+2
 
     // step3 : loop on the step2 and mean on the diffusion number
     double mean = 0;

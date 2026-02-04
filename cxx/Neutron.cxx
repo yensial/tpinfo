@@ -91,13 +91,13 @@ int Neutron::GetDiffuNumber()
 void Neutron::BuildTrajectory(Neutron* SlowingDownNeutron, double StartEnergy, double FinalEnergy)
 {
     double el = SlowingDownNeutron->SampleLength();
-    cout << "the length of the very first segment has been sampled equal to " << el << " cm" << endl;
+    //cout << "the length of the very first segment has been sampled equal to " << el << " cm" << endl;
     
     double psi = 0;
     double x = el*cos(psi);
     double y = el*sin(psi);
 
-    cout << "the neutron is now in x = " << x << " and y = " << y << " (position of the first diffusion)" << endl;
+    //cout << "the neutron is now in x = " << x << " and y = " << y << " (position of the first diffusion)" << endl;
 
     double EpsilonTheta = double(rand()) / RAND_MAX;
 

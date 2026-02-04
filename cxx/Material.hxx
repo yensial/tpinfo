@@ -14,6 +14,8 @@ class Material
     double GetDiffusionCrossSection(){return Material_DiffusionCrossSection;};
     
     // DEFINITION OF NEW (PUBLIC) METHODS TO ADD BELOW
+    
+    double GetMeanNbChoc(double ksi);
 
 
 
