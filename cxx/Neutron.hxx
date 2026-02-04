@@ -24,6 +24,7 @@ class Neutron
     void SetDiffuNb();
     void ResetParameters();
     int GetDiffuNumber();
+    void BuildTrajectory(double SartEnergy, double FinalEnergy);
 
 
 

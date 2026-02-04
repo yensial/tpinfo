@@ -12,7 +12,6 @@ class Material
 
     void SetMainParameters(double A, double Sigma_s);
     double GetDiffusionCrossSection(){return Material_DiffusionCrossSection;};
-    double GetMassNumber(){return Material_MassNumber;};
     
     // DEFINITION OF NEW (PUBLIC) METHODS TO ADD BELOW
 
@@ -26,6 +25,7 @@ class Material
 
     // DEFINITION OF NEW (PRIVATE) ATTRIBUTES TO ADD BELOW
 
+    double MeanNbChoc;
 
 
 };

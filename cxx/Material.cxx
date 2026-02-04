@@ -23,7 +23,11 @@ void Material::SetMainParameters(double A, double Sigma_s)
     Material_DiffusionCrossSection = Sigma_s;
 }
 //________________________________________________________________________
-
+double Material::GetMeanNbChoc(double ksi)
+{
+    MeanNbChoc = 13.8/ksi;
+    return MeanNbChoc;
+}
 
 
 

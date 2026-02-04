@@ -55,54 +55,120 @@ double Neutron::SampleLength()
 	return length;
 }
 //________________________________________________________________________
-double Neutron::SampleDeviationAngle()
+void Neutron::SetPositions(double x, double y)
 {
-    double A = Neutron_Material->GetMassNumber();
-
-    // Isotropic scattering in Center of Mass frame
-    // mu = cos(theta_CM) is sampled uniformly in [-1, 1]
-    double mu = 2.0 * (double(rand()) / double(RAND_MAX)) - 1.0;
-
-    // cos of scattering angle in LAB frame
-    double cos_theta_lab = (1.0 + A * mu) / sqrt(1.0 + A*A + 2.0 * A * mu);
-    double theta_lab = acos(cos_theta_lab);
-
-    // In 2D, the deviation can be positive or negative with equal probability
-    if (rand() > RAND_MAX / 2)
-        return theta_lab;
-    else
-        return -theta_lab;
+    Neutron_PosX = x;
+    Neutron_PosY = y;
 }
 //________________________________________________________________________
-void Neutron::InitTrajectory()
+void Neutron::SetCumulatedAngle(double theta)
 {
+    Neutron_CumulatedAngle += theta;
+}
+//________________________________________________________________________
+void Neutron::SetDiffuNb()
+{
+    Neutron_DiffusionNumber ++;
+}
+//________________________________________________________________________
+void Neutron::ResetParameters()
+{
+    Neutron_Emax = 0;
+    Neutron_Emin = 0;
+    
     Neutron_DiffusionNumber = 0;
-    Neutron_PosX = 0;
-    Neutron_PosY = 0;
     Neutron_CumulatedAngle = 0;
+    
+    Neutron_PosX = 0;  
+    Neutron_PosY = 0;
 }
-//________________________________________________________________________
-int Neutron::BuildTrajectory()
+//_______________________________________________________________________
+int Neutron::GetDiffuNumber()
 {
-
-    double energy = Neutron_Emax;
-    while (energy > Neutron_Emin)
-    {
-        Neutron_DiffusionNumber++;
-
-        double length = SampleLength();
-        double deviation = SampleDeviationAngle();
-        Neutron_CumulatedAngle += deviation;
-
-        Neutron_PosX += length * cos(Neutron_CumulatedAngle);
-        Neutron_PosY += length * sin(Neutron_CumulatedAngle);
-
-        WriteCurrentPosition();
-
-        // Simple energy loss model (can be refined)
-        ; 
-    }
-
     return Neutron_DiffusionNumber;
 }
-//________________________________________________________________________
+//_______________________________________________________________________
+void Neutron::BuildTrajectory(Neutron* SlowingDownNeutron, double StartEnergy, double FinalEnergy)
+{
+    double el = SlowingDownNeutron->SampleLength();
+    cout << "the length of the very first segment has been sampled equal to " << el << " cm" << endl;
+    
+    double psi = 0;
+    double x = el*cos(psi);
+    double y = el*sin(psi);
+
+    cout << "the neutron is now in x = " << x << " and y = " << y << " (position of the first diffusion)" << endl;
+
+    double EpsilonTheta = double(rand()) / RAND_MAX;
+
+    double CosTheta = 2*EpsilonTheta - 1;
+    
+    SlowingDownNeutron->SetCumulatedAngle(acos(CosTheta));
+
+    double EnergyStart = StartEnergy;      
+    double EnergyFin = (EnergyStart * 0.5 * (1 + CosTheta));                      
+    
+    SlowingDownNeutron->InitEnergies(EnergyStart, EnergyFin);
+
+    double Positive = (double(rand()) / RAND_MAX) * 100;
+
+    el = SlowingDownNeutron->SampleLength();
+    
+    if(Positive <= 50)
+    {
+        psi = acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
+    }
+    else
+    {
+        psi = -acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
+    }
+
+    x = el*cos(psi);
+    y = el*sin(psi);
+
+    SlowingDownNeutron->SetPositions(x,y);
+
+    SlowingDownNeutron->SetDiffuNb();
+    
+    SlowingDownNeutron->WriteCurrentPosition();
+
+    while(EnergyFin > FinalEnergy)
+    {
+
+        SlowingDownNeutron->SetPositions(x,y);
+
+        SlowingDownNeutron->SetDiffuNb();
+
+        SlowingDownNeutron->WriteCurrentPosition();
+
+        EpsilonTheta = double(rand()) / RAND_MAX;
+
+        CosTheta = 2*EpsilonTheta - 1;
+    
+        EnergyStart = EnergyFin;      
+        EnergyFin = (EnergyStart * 0.5 * (1 + CosTheta));                         
+    
+        SlowingDownNeutron->InitEnergies(EnergyStart, EnergyFin);
+
+        Positive = (double(rand()) / RAND_MAX) * 100;
+
+        el = SlowingDownNeutron->SampleLength();
+    
+        if(Positive <= 50)
+        {
+            psi = acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
+        }
+        else
+        {
+            psi = -acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
+        }
+
+        x = el*cos(psi);
+        y = el*sin(psi);
+    
+    }
+}
+//____________________________________________________________________________________________
+
+
+
