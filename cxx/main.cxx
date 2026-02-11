@@ -15,10 +15,12 @@ int main()
  
     // init of NonAbsorbingModerator
 
-    double MassNumber = 14;                  // A (here material is supposed to be pure H of mass number A = 1)
-    double ScatteringCrossSection = 0.5;    // in cm-1  
+    double Sigma0 = 0.13;                    // in cm-1 
+    double Sigma1 = 0.22;
+    double MassNumber0 = 16;
+    double MassNumber1 = 2;                  // A (here material is supposed to be pure H of mass number A = 1) 
     
-    NonAbsorbingModerator->SetMainParameters(MassNumber, ScatteringCrossSection);
+    NonAbsorbingModerator->SetMassNumberCrossSection(MassNumber0, MassNumber1, Sigma0, Sigma1);
 
     // construction of SlowingDownNeutron (pointer to the second object, of the Neutron class) to be re-initialized and re-used for each new neutron
     
@@ -36,7 +38,7 @@ int main()
     
     SlowingDownNeutron->InitEnergies(StartEnergy, FinalEnergy);
     
-    SlowingDownNeutron->BuildTrajectory(SlowingDownNeutron, StartEnergy, FinalEnergy, NonAbsorbingModerator->GetMassNumber()); //Step 1+2
+    SlowingDownNeutron->BuildTrajectory(SlowingDownNeutron, StartEnergy, FinalEnergy); //Step 1+2
 
     // step3 : loop on the step2 and mean on the diffusion number
     double mean = 0;
@@ -50,7 +52,7 @@ int main()
     
         SlowingDownNeutron->InitEnergies(StartEnergy, FinalEnergy);
 
-        SlowingDownNeutron->BuildTrajectory(SlowingDownNeutron, StartEnergy, FinalEnergy, NonAbsorbingModerator->GetMassNumber());
+        SlowingDownNeutron->BuildTrajectory(SlowingDownNeutron, StartEnergy, FinalEnergy);
         
         mean += ( SlowingDownNeutron->GetDiffuNumber() );
     }

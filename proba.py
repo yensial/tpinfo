@@ -41,5 +41,9 @@ def variance(data):
 print("Moyenne : ", moyenne(data))
 print("Ecart-type : ", sqrt(variance(data)))
 
+delta_m=1.96*variance(data)/sqrt(len(data))
+print("Intervalle de confiance à 95% : [",moyenne(data)-delta_m," ; ",moyenne(data)+delta_m,"]")
+print("Rapport dm/m : ", delta_m/moyenne(data)*100, " %")
+
 
     
