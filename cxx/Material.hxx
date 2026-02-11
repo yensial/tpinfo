@@ -16,6 +16,7 @@ class Material
     // DEFINITION OF NEW (PUBLIC) METHODS TO ADD BELOW
     
     double GetMeanNbChoc(double ksi);
+    int GetMassNumber();
 
 
 

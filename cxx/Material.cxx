@@ -28,6 +28,11 @@ double Material::GetMeanNbChoc(double ksi)
     MeanNbChoc = 13.8/ksi;
     return MeanNbChoc;
 }
+//________________________________________________________________________
+int Material::GetMassNumber()
+{
+    return Material_MassNumber;
+}
 
 
 

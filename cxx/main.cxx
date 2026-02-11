@@ -15,8 +15,8 @@ int main()
  
     // init of NonAbsorbingModerator
 
-    double MassNumber = 1;                  // A (here material is supposed to be pure H of mass number A = 1)
-    double ScatteringCrossSection = 1.3;    // in cm-1  
+    double MassNumber = 14;                  // A (here material is supposed to be pure H of mass number A = 1)
+    double ScatteringCrossSection = 0.5;    // in cm-1  
     
     NonAbsorbingModerator->SetMainParameters(MassNumber, ScatteringCrossSection);
 
@@ -36,7 +36,7 @@ int main()
     
     SlowingDownNeutron->InitEnergies(StartEnergy, FinalEnergy);
     
-    SlowingDownNeutron->BuildTrajectory(SlowingDownNeutron, StartEnergy, FinalEnergy); //Step 1+2
+    SlowingDownNeutron->BuildTrajectory(SlowingDownNeutron, StartEnergy, FinalEnergy, NonAbsorbingModerator->GetMassNumber()); //Step 1+2
 
     // step3 : loop on the step2 and mean on the diffusion number
     double mean = 0;
@@ -50,7 +50,7 @@ int main()
     
         SlowingDownNeutron->InitEnergies(StartEnergy, FinalEnergy);
 
-        SlowingDownNeutron->BuildTrajectory(SlowingDownNeutron, StartEnergy, FinalEnergy);
+        SlowingDownNeutron->BuildTrajectory(SlowingDownNeutron, StartEnergy, FinalEnergy, NonAbsorbingModerator->GetMassNumber());
         
         mean += ( SlowingDownNeutron->GetDiffuNumber() );
     }

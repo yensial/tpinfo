@@ -27,7 +27,7 @@ Neutron::Neutron(string n_name, string d_name)
     
     // First "header" line of Neutron's trajectory data file is written (with n number of collisions already made and x,y the place where the nth collision happens)
     
-	*Neutron_TrajectoryOFStream << setw(9) << "# n" << setw(20) << "x" << setw(20) << "y" << endl;        
+	*Neutron_TrajectoryOFStream << "#n" <<","<< "x" <<"," << "y" << endl;        
 }
 //________________________________________________________________________
 Neutron::~Neutron()
@@ -43,7 +43,7 @@ void Neutron::InitEnergies(double init, double last)
 //________________________________________________________________________
 void Neutron::WriteCurrentPosition()
 {
-	*Neutron_TrajectoryOFStream << Neutron_DiffusionNumber << "\t\t" << Neutron_PosX << "\t\t" << Neutron_PosY << endl;  
+	*Neutron_TrajectoryOFStream << Neutron_DiffusionNumber <<","<< Neutron_PosX <<"," << Neutron_PosY << endl;  
 }
 //________________________________________________________________________
 double Neutron::SampleLength()
@@ -88,9 +88,10 @@ int Neutron::GetDiffuNumber()
     return Neutron_DiffusionNumber;
 }
 //_______________________________________________________________________
-void Neutron::BuildTrajectory(Neutron* SlowingDownNeutron, double StartEnergy, double FinalEnergy)
+void Neutron::BuildTrajectory(Neutron* SlowingDownNeutron, double StartEnergy, double FinalEnergy, int A)
 {
     double el = SlowingDownNeutron->SampleLength();
+    SlowingDownNeutron->WriteCurrentPosition();
     //cout << "the length of the very first segment has been sampled equal to " << el << " cm" << endl;
     
     double psi = 0;
@@ -106,7 +107,7 @@ void Neutron::BuildTrajectory(Neutron* SlowingDownNeutron, double StartEnergy, d
     SlowingDownNeutron->SetCumulatedAngle(acos(CosTheta));
 
     double EnergyStart = StartEnergy;      
-    double EnergyFin = (EnergyStart * 0.5 * (1 + CosTheta));                      
+    double EnergyFin = (EnergyStart * ( ( A*A + 2*A*CosTheta + 1)/((A+1)*(A+1))));                  
     
     SlowingDownNeutron->InitEnergies(EnergyStart, EnergyFin);
 
@@ -130,7 +131,7 @@ void Neutron::BuildTrajectory(Neutron* SlowingDownNeutron, double StartEnergy, d
 
     SlowingDownNeutron->SetDiffuNb();
     
-    SlowingDownNeutron->WriteCurrentPosition();
+
 
     while(EnergyFin > FinalEnergy)
     {
@@ -146,8 +147,8 @@ void Neutron::BuildTrajectory(Neutron* SlowingDownNeutron, double StartEnergy, d
         CosTheta = 2*EpsilonTheta - 1;
     
         EnergyStart = EnergyFin;      
-        EnergyFin = (EnergyStart * 0.5 * (1 + CosTheta));                         
-    
+        EnergyFin = (EnergyStart * ( ( A*A + 2*A*CosTheta + 1)/((A+1)*(A+1))));                          
+
         SlowingDownNeutron->InitEnergies(EnergyStart, EnergyFin);
 
         Positive = (double(rand()) / RAND_MAX) * 100;
