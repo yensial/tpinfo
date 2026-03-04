@@ -1,6 +1,11 @@
 #include "misc.hxx"
 #include "Neutron.hxx"
 #include "Material.hxx"
+#include "chrono"
+
+using namespace std;
+using namespace std::chrono;
+
 
 int main()
 {
@@ -38,18 +43,15 @@ int main()
     double FinalEnergy = 1.0;                       // final energy set to 1 eV (for which the average number of collisions is wanted)
     
     SlowingDownNeutron->InitEnergies(StartEnergy, FinalEnergy);
-    
-    SlowingDownNeutron->BuildTrajectory(); //Step 1+2
+    auto start = chrono::high_resolution_clock::now();
+    SlowingDownNeutron->BuildTrajectory(); //initialisation: histoire n°0
 
     // step3 : loop on the step2 and mean on the diffusion number
     double mean = 0;
 
     for(int i = 0; i < NombreDeTrajectoire; i++)
     {
-        SlowingDownNeutron->ResetParameters();
-
-        double StartEnergy = InitialNeutronEnergy;      
-        double FinalEnergy = 1.0;                     
+        SlowingDownNeutron->ResetParameters();                     
     
         SlowingDownNeutron->InitEnergies(StartEnergy, FinalEnergy);
 
@@ -57,9 +59,11 @@ int main()
         
         mean += ( SlowingDownNeutron->GetDiffuNumber() );
     }
+    auto end = chrono::high_resolution_clock::now();
+    double duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
 
     mean /= NombreDeTrajectoire;
-
+    cout << "Le temps de calcul est " << duration << " millisecondes" << endl;
     cout << "Le nombre moyen d'impact est " << mean << endl;
 
 }

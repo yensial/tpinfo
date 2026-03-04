@@ -5,7 +5,7 @@ Material::Material()
 {        
     Material_MassNumber[0] = 0.0;
     Material_MassNumber[1] = 0.0;           
-    Material_SlowingDownParameter = 0;         
+    Material_SlowingDownParameter = 0;
     Material_DiffusionCrossSection[0] = 0.0;
     Material_DiffusionCrossSection[1] = 0.0;
 }
@@ -37,7 +37,7 @@ double* Material::GetMassNumber()
 //_________________________________________________________________________
 void Material::SetSlowingDownParameter(double A)
 {
-    Material_SlowingDownParameter = (A-1)*(A-1);
-    Material_SlowingDownParameter /= (A+1)*(A+1);
+    Material_SlowingDownParameter = A;
+    Material_SlowingDownParameter /= (A-1)*(A-1);
 }
 //_________________________________________________________________________

@@ -11,7 +11,8 @@ Neutron::Neutron(string n_name, string d_name, string t_name)
     
     Neutron_Emax = 0;
     Neutron_Emin = 0;
-    Neutron_E=0;
+    Neutron_Eactu = 0;
+    
     Neutron_DiffusionNumber = 0;
     Neutron_CumulatedAngle = 0;
     
@@ -31,14 +32,13 @@ Neutron::Neutron(string n_name, string d_name, string t_name)
     
     // First "header" line of Neutron's trajectory data file is written (with n number of collisions already made and x,y the place where the nth collision happens)
     
-	*Neutron_TrajectoryOFStream << "#n" <<"," <<"x" <<"," << "y" << endl; 
-    
-    
+	*Neutron_TrajectoryOFStream << "#n" << "," <<"x" <<"," << "y" << endl;   
+
     Neutron_TimeDirName = t_name;
     Neutron_TimeFileName = Neutron_TimeDirName + "/" + Neutron_Name + "_time.dat";
 
 	Neutron_TimeOFStream = new ofstream(Neutron_TimeFileName.c_str());
-	Neutron_TimeOFStream->setf(ios::left);
+	Neutron_TimeOFStream->setf(ios::left);     
 }
 //________________________________________________________________________
 Neutron::~Neutron()
@@ -50,6 +50,7 @@ void Neutron::InitEnergies(double init, double last)
 {
     Neutron_Emax = init;
     Neutron_Emin = last;
+    Neutron_Eactu = init;
 }
 //________________________________________________________________________
 void Neutron::WriteCurrentPosition()
@@ -57,6 +58,7 @@ void Neutron::WriteCurrentPosition()
 	*Neutron_TrajectoryOFStream << Neutron_DiffusionNumber << "," << Neutron_PosX << "," << Neutron_PosY << endl;  
 }
 //________________________________________________________________________
+
 void Neutron::WriteHistoireTime(auto start, auto end)
 {
     double duration = chrono::duration_cast<chrono::microseconds>(end - start).count();
@@ -64,6 +66,7 @@ void Neutron::WriteHistoireTime(auto start, auto end)
 
     
 }
+
 //________________________________________________________________________
 double Neutron::SampleLength()
 {
@@ -82,9 +85,9 @@ void Neutron::SetPositions(double x, double y)
     Neutron_PosY = y;
 }
 //________________________________________________________________________
-void Neutron::SetCumulatedAngle(double theta)
+void Neutron::CumulateAngle(double psi)
 {
-    Neutron_CumulatedAngle += theta;
+    Neutron_CumulatedAngle += psi;
 }
 //________________________________________________________________________
 void Neutron::SetDiffuNb()
@@ -94,6 +97,7 @@ void Neutron::SetDiffuNb()
 //________________________________________________________________________
 void Neutron::ResetParameters()
 {
+    Neutron_Eactu = Neutron_Emax;
     
     Neutron_DiffusionNumber = 0;
     Neutron_CumulatedAngle = 0;
@@ -107,83 +111,24 @@ int Neutron::GetDiffuNumber()
     return Neutron_DiffusionNumber;
 }
 //_______________________________________________________________________
-
-
-
-
 void Neutron::BuildTrajectory()
 {
-    
     auto start = chrono::high_resolution_clock::now();
-    Neutron_E = Neutron_Emax;
-    double el = SampleLength();
-    
+    double el = 0;
     double psi = 0;
-    double x = el*cos(psi);
-    double y = el*sin(psi);
-
-
-    double EpsilonTheta = double(rand()) / RAND_MAX;
-
-    double CosTheta = 2*EpsilonTheta - 1;
-    
-    this->SetCumulatedAngle(psi);
-
+    double EpsilonTheta = 0;
+    double CosTheta = 0;
     double A = 0;
+    double* MassNumber = NULL;
+    double* Sigma = NULL;
+    double EpsilonMaterial;
+    double Positive;
 
-    Material* NeutronMaterial = this->GetMaterial();
-    double* MassNumber = NeutronMaterial->GetMassNumber();
-    double* Sigma = NeutronMaterial->GetDiffusionCrossSection();
-
-    double EpsilonMaterial = double(rand()) / RAND_MAX;
-
-    if( EpsilonMaterial < (Sigma[0]/Sigma[1]))
+    while(Neutron_Eactu > Neutron_Emin)
     {
-        A = MassNumber[0];
-        NeutronMaterial->SetSlowingDownParameter(Sigma[0]);
+        
 
-    }
-    else
-    {
-        A = MassNumber[1];
-        NeutronMaterial->SetSlowingDownParameter(Sigma[1]);
-    }
-
-    this->SetMaterial(NeutronMaterial);
-      
-    Neutron_E = (Neutron_E * ( ( A*A + 2*A*CosTheta + 1)/((A+1)*(A+1))));                  
-
-    double Positive = (double(rand()) / RAND_MAX) * 100;
-
-    el = this->SampleLength();
-    
-    if(Positive <= 50)
-    {
-        psi = acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
-    }
-    else
-    {
-        psi = -acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
-    }
-
-    x = el*cos(psi);
-    y = el*sin(psi);
-
-    this->SetPositions(x,y);
-
-    this->SetDiffuNb();
-
-
-
-
-    while(Neutron_E > Neutron_Emin)
-    
-    {
-
-        this->SetPositions(x,y);
-
-        this->SetDiffuNb();
-
+        SetDiffuNb();
 
         EpsilonTheta = double(rand()) / RAND_MAX;
 
@@ -191,48 +136,50 @@ void Neutron::BuildTrajectory()
 
         EpsilonMaterial = double(rand()) / RAND_MAX;
 
+        MassNumber = Neutron_Material->GetMassNumber();
+
+        Sigma = Neutron_Material->GetDiffusionCrossSection();
+
         if( EpsilonMaterial < (Sigma[0]/Sigma[1]))
         {
             A = MassNumber[0];
-            NeutronMaterial->SetSlowingDownParameter(Sigma[0]);
 
         }
         else
         {
             A = MassNumber[1];
-            NeutronMaterial->SetSlowingDownParameter(Sigma[1]);
         }
+        Neutron_Material->SetSlowingDownParameter(A);
 
-        this->SetMaterial(NeutronMaterial);
+        Neutron_Eactu = (Neutron_Eactu * ( ( A*A + 2*A*CosTheta + 1)/((A+1)*(A+1))));                          
 
+        Positive =2*  (double(rand()) / RAND_MAX) -1;
+        Positive = Positive / abs(Positive);
+        psi = Positive * acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
         
-         
-        Neutron_E = (Neutron_E * ( ( A*A + 2*A*CosTheta + 1)/((A+1)*(A+1))));                          
 
+        CumulateAngle(psi);
 
-        Positive = (double(rand()) / RAND_MAX) * 100;
+        el = SampleLength();
 
-        el = this->SampleLength();
-    
-        if(Positive <= 50)
-        {
-            psi = acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
-        }
-        else
-        {
-            psi = -acos((1 + CosTheta) / (sqrt(1 + (2 * CosTheta) + 1)));
-        }
-
-        x = el*cos(psi);
-        y = el*sin(psi);
+        Neutron_PosX = el*cos(psi);
+        Neutron_PosY = el*sin(psi);
     
     }
+    WriteCurrentPosition();
     auto end = chrono::high_resolution_clock::now();
-    this->WriteHistoireTime(start, end);
-    this->WriteCurrentPosition();
+    WriteHistoireTime(start, end);
 }
 //____________________________________________________________________________________________
 Material* Neutron::GetMaterial()
 {
     return Neutron_Material;
 }
+//____________________________________________________________________________________________
+void Neutron::GetPositions(double position[2])
+{
+    position[0] = Neutron_PosX;
+    position[1] = Neutron_PosY;
+} 
+
+

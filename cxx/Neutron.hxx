@@ -21,12 +21,13 @@ class Neutron
     // DEFINITION OF NEW (PUBLIC) METHODS TO ADD BELOW
 
     void SetPositions(double x, double y);
-    void SetCumulatedAngle(double theta);
+    void CumulateAngle(double psi);
     void SetDiffuNb();
     void ResetParameters();
     int GetDiffuNumber();
     void BuildTrajectory();
     Material* GetMaterial();
+    void GetPositions(double position[2]);
 
 
 
@@ -36,7 +37,7 @@ class Neutron
 
     double Neutron_Emax;                    // kinetic energy the neutron has when it appears (2 MeV if produced by fission)
     double Neutron_Emin;                    // kinetic energy set as goal (for estimating how many collisions are necessary on average to reach such a low energy)
-    double Neutron_E;                       // kinetic energy of the neutron at each step of its slowing-down process (to be updated after each collision, until it goes under Neutron_Emin)
+    double Neutron_Eactu;                       // kinetic energy of the neutron at each step of its slowing-down process (to be updated after each collision, until it goes under Neutron_Emin)
     int Neutron_DiffusionNumber;            // current number of diffusions already performed by the neutron
     double Neutron_CumulatedAngle;          // cumulated angle in LAB after all diffusions already performed (to be used for the new position)
     
@@ -54,7 +55,6 @@ class Neutron
 
     string Neutron_TimeDirName;             // name of the current time directory (to be written in the time directory)
 
-    // DEFINITION OF NEW (PRIVATE) ATTRIBUTES TO ADD BELOW
 
 
 
