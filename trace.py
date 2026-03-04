@@ -42,9 +42,9 @@ def plot_n_repartition(data):
 
     print(f"Nombre moyen de positions: {n_moyen/count:.2f}")
     plt.figure(figsize=(10,6))
-    plt.title("Repartition of Neutron Positions", fontsize=16)
-    plt.xlabel("Number of Positions", fontsize=14)
-    plt.ylabel("Frequency", fontsize=14)
+    plt.title(f"Répartition du nombre de chocs avec {count:.2d}", fontsize=16)
+    plt.xlabel("Nombre de chocs", fontsize=14)
+    plt.ylabel("Fréquence", fontsize=14)
     plt.bar(n_rep.keys(), n_rep.values())
     plt.grid()
     plt.show()

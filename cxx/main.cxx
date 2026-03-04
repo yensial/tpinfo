@@ -24,8 +24,9 @@ int main()
 
     // construction of SlowingDownNeutron (pointer to the second object, of the Neutron class) to be re-initialized and re-used for each new neutron
     
-    string DataDirName = "../dat";          // already existing directory (for writing data files in it, while source and executable files are in cxx)
-    Neutron* SlowingDownNeutron = new Neutron("SlowingDownNeutron", DataDirName);
+    string DataDirName = "../dat";         // already existing directory (for writing data files in it, while source and executable files are in cxx)
+    string TimeDirName = "../dat";        // already existing directory (for writing time files in it, while source and executable files are in cxx)
+    Neutron* SlowingDownNeutron = new Neutron("SlowingDownNeutron", DataDirName, TimeDirName);
 
     // SlowingDownNeutron needs to know the Material where it travels
     
@@ -38,7 +39,7 @@ int main()
     
     SlowingDownNeutron->InitEnergies(StartEnergy, FinalEnergy);
     
-    SlowingDownNeutron->BuildTrajectory(SlowingDownNeutron, StartEnergy, FinalEnergy); //Step 1+2
+    SlowingDownNeutron->BuildTrajectory(); //Step 1+2
 
     // step3 : loop on the step2 and mean on the diffusion number
     double mean = 0;
@@ -52,7 +53,7 @@ int main()
     
         SlowingDownNeutron->InitEnergies(StartEnergy, FinalEnergy);
 
-        SlowingDownNeutron->BuildTrajectory(SlowingDownNeutron, StartEnergy, FinalEnergy);
+        SlowingDownNeutron->BuildTrajectory();
         
         mean += ( SlowingDownNeutron->GetDiffuNumber() );
     }

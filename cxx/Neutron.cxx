@@ -1,13 +1,17 @@
 #include "Neutron.hxx"
+#include "chrono"
+
+using namespace std;
+using namespace std::chrono;
 
 //________________________________________________________________________
-Neutron::Neutron(string n_name, string d_name)
+Neutron::Neutron(string n_name, string d_name, string t_name)
 {
     Neutron_Material = NULL;        // no address for this pointer yet (the Neutron does not know its Material yet)
     
     Neutron_Emax = 0;
     Neutron_Emin = 0;
-    
+    Neutron_E=0;
     Neutron_DiffusionNumber = 0;
     Neutron_CumulatedAngle = 0;
     
@@ -27,7 +31,14 @@ Neutron::Neutron(string n_name, string d_name)
     
     // First "header" line of Neutron's trajectory data file is written (with n number of collisions already made and x,y the place where the nth collision happens)
     
-	*Neutron_TrajectoryOFStream << "#n" <<"," <<"x" <<"," << "y" << endl;        
+	*Neutron_TrajectoryOFStream << "#n" <<"," <<"x" <<"," << "y" << endl; 
+    
+    
+    Neutron_TimeDirName = t_name;
+    Neutron_TimeFileName = Neutron_TimeDirName + "/" + Neutron_Name + "_time.dat";
+
+	Neutron_TimeOFStream = new ofstream(Neutron_TimeFileName.c_str());
+	Neutron_TimeOFStream->setf(ios::left);
 }
 //________________________________________________________________________
 Neutron::~Neutron()
@@ -44,6 +55,14 @@ void Neutron::InitEnergies(double init, double last)
 void Neutron::WriteCurrentPosition()
 {
 	*Neutron_TrajectoryOFStream << Neutron_DiffusionNumber << "," << Neutron_PosX << "," << Neutron_PosY << endl;  
+}
+//________________________________________________________________________
+void Neutron::WriteHistoireTime(auto start, auto end)
+{
+    double duration = chrono::duration_cast<chrono::microseconds>(end - start).count();
+    *Neutron_TimeOFStream << duration << endl;
+
+    
 }
 //________________________________________________________________________
 double Neutron::SampleLength()
@@ -75,8 +94,6 @@ void Neutron::SetDiffuNb()
 //________________________________________________________________________
 void Neutron::ResetParameters()
 {
-    Neutron_Emax = 0;
-    Neutron_Emin = 0;
     
     Neutron_DiffusionNumber = 0;
     Neutron_CumulatedAngle = 0;
@@ -90,28 +107,31 @@ int Neutron::GetDiffuNumber()
     return Neutron_DiffusionNumber;
 }
 //_______________________________________________________________________
-void Neutron::BuildTrajectory(Neutron* SlowingDownNeutron, double StartEnergy, double FinalEnergy)
+
+
+
+
+void Neutron::BuildTrajectory()
 {
-    double el = SlowingDownNeutron->SampleLength();
-    //cout << "the length of the very first segment has been sampled equal to " << el << " cm" << endl;
+    
+    auto start = chrono::high_resolution_clock::now();
+    Neutron_E = Neutron_Emax;
+    double el = SampleLength();
     
     double psi = 0;
     double x = el*cos(psi);
     double y = el*sin(psi);
 
-    //cout << "the neutron is now in x = " << x << " and y = " << y << " (position of the first diffusion)" << endl;
-
-    SlowingDownNeutron->WriteCurrentPosition();
 
     double EpsilonTheta = double(rand()) / RAND_MAX;
 
     double CosTheta = 2*EpsilonTheta - 1;
     
-    SlowingDownNeutron->SetCumulatedAngle(acos(CosTheta));
+    this->SetCumulatedAngle(psi);
 
     double A = 0;
 
-    Material* NeutronMaterial = SlowingDownNeutron->GetMaterial();
+    Material* NeutronMaterial = this->GetMaterial();
     double* MassNumber = NeutronMaterial->GetMassNumber();
     double* Sigma = NeutronMaterial->GetDiffusionCrossSection();
 
@@ -129,16 +149,13 @@ void Neutron::BuildTrajectory(Neutron* SlowingDownNeutron, double StartEnergy, d
         NeutronMaterial->SetSlowingDownParameter(Sigma[1]);
     }
 
-    SlowingDownNeutron->SetMaterial(NeutronMaterial);
-
-    double EnergyStart = StartEnergy;      
-    double EnergyFin = (EnergyStart * ( ( A*A + 2*A*CosTheta + 1)/((A+1)*(A+1))));                  
-    
-    SlowingDownNeutron->InitEnergies(EnergyStart, EnergyFin);
+    this->SetMaterial(NeutronMaterial);
+      
+    Neutron_E = (Neutron_E * ( ( A*A + 2*A*CosTheta + 1)/((A+1)*(A+1))));                  
 
     double Positive = (double(rand()) / RAND_MAX) * 100;
 
-    el = SlowingDownNeutron->SampleLength();
+    el = this->SampleLength();
     
     if(Positive <= 50)
     {
@@ -152,20 +169,21 @@ void Neutron::BuildTrajectory(Neutron* SlowingDownNeutron, double StartEnergy, d
     x = el*cos(psi);
     y = el*sin(psi);
 
-    SlowingDownNeutron->SetPositions(x,y);
+    this->SetPositions(x,y);
 
-    SlowingDownNeutron->SetDiffuNb();
+    this->SetDiffuNb();
+
+
+
+
+    while(Neutron_E > Neutron_Emin)
     
-    SlowingDownNeutron->WriteCurrentPosition();
-
-    while(EnergyFin > FinalEnergy)
     {
 
-        SlowingDownNeutron->SetPositions(x,y);
+        this->SetPositions(x,y);
 
-        SlowingDownNeutron->SetDiffuNb();
+        this->SetDiffuNb();
 
-        SlowingDownNeutron->WriteCurrentPosition();
 
         EpsilonTheta = double(rand()) / RAND_MAX;
 
@@ -185,18 +203,16 @@ void Neutron::BuildTrajectory(Neutron* SlowingDownNeutron, double StartEnergy, d
             NeutronMaterial->SetSlowingDownParameter(Sigma[1]);
         }
 
-        SlowingDownNeutron->SetMaterial(NeutronMaterial);
+        this->SetMaterial(NeutronMaterial);
 
         
-    
-        EnergyStart = EnergyFin;      
-        EnergyFin = (EnergyStart * ( ( A*A + 2*A*CosTheta + 1)/((A+1)*(A+1))));                          
+         
+        Neutron_E = (Neutron_E * ( ( A*A + 2*A*CosTheta + 1)/((A+1)*(A+1))));                          
 
-        SlowingDownNeutron->InitEnergies(EnergyStart, EnergyFin);
 
         Positive = (double(rand()) / RAND_MAX) * 100;
 
-        el = SlowingDownNeutron->SampleLength();
+        el = this->SampleLength();
     
         if(Positive <= 50)
         {
@@ -211,11 +227,12 @@ void Neutron::BuildTrajectory(Neutron* SlowingDownNeutron, double StartEnergy, d
         y = el*sin(psi);
     
     }
+    auto end = chrono::high_resolution_clock::now();
+    this->WriteHistoireTime(start, end);
+    this->WriteCurrentPosition();
 }
 //____________________________________________________________________________________________
 Material* Neutron::GetMaterial()
 {
     return Neutron_Material;
 }
-
-

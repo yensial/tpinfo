@@ -8,13 +8,14 @@ class Neutron
 {
   public:
  	
-    Neutron(string n_name, string d_name);          // constructor (several versions are possible, this one asks for both neutron and data directory names)
+    Neutron(string n_name, string d_name, string t_name);          // constructor (several versions are possible, this one asks for both neutron and data directory names)
 	  ~Neutron();                                     // destructor (to free memory when the object is removed, using "delete")
 
     void SetMaterial(Material* material){Neutron_Material = material;};     // inline definition of Neutron_Material (no need to define this method in Neutron.cxx)
     void InitEnergies(double init, double last);                            // definition of initial and final kinetic energies
     
-    void WriteCurrentPosition();                                            // writes in the trajectory file the current time and the Neutron's positions at this time
+    void WriteCurrentPosition(); 
+    void WriteHistoireTime(auto start, auto end);                                          // writes in the trajectory file the current time and the Neutron's positions at this time
     double SampleLength();                                                  // samples of a new segment length by using cstdlib's rand() method
 
     // DEFINITION OF NEW (PUBLIC) METHODS TO ADD BELOW
@@ -24,7 +25,7 @@ class Neutron
     void SetDiffuNb();
     void ResetParameters();
     int GetDiffuNumber();
-    void BuildTrajectory(Neutron* SlowingDownNeutron, double StartEnergy, double FinalEnergy);
+    void BuildTrajectory();
     Material* GetMaterial();
 
 
@@ -35,7 +36,7 @@ class Neutron
 
     double Neutron_Emax;                    // kinetic energy the neutron has when it appears (2 MeV if produced by fission)
     double Neutron_Emin;                    // kinetic energy set as goal (for estimating how many collisions are necessary on average to reach such a low energy)
-    
+    double Neutron_E;                       // kinetic energy of the neutron at each step of its slowing-down process (to be updated after each collision, until it goes under Neutron_Emin)
     int Neutron_DiffusionNumber;            // current number of diffusions already performed by the neutron
     double Neutron_CumulatedAngle;          // cumulated angle in LAB after all diffusions already performed (to be used for the new position)
     
@@ -46,7 +47,12 @@ class Neutron
 	  string Neutron_DataDirName;             // "../dat" (for the Neutron to know where to write each new data file, at least one for each trajectory)
     	
 	  string Neutron_TrajectoryFileName;      // name of the current trajectory file (composed of a few segments, until its energy goes under Neutron_Emin)
-	  ofstream *Neutron_TrajectoryOFStream;   // Output File Stream towards Neutron's current trajectory data file (for writing the successive positions x and y)
+	  
+    ofstream *Neutron_TrajectoryOFStream;   // Output File Stream towards Neutron's current trajectory data file (for writing the successive positions x and y)
+    string Neutron_TimeFileName;            // name of the current time file (to be written in the time directory)
+    ofstream *Neutron_TimeOFStream;         // Output File Stream towards Neutron's current time data file (for writing the successive times)
+
+    string Neutron_TimeDirName;             // name of the current time directory (to be written in the time directory)
 
     // DEFINITION OF NEW (PRIVATE) ATTRIBUTES TO ADD BELOW
 
