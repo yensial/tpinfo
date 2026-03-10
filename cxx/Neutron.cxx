@@ -166,9 +166,7 @@ void Neutron::BuildTrajectory()
         Neutron_PosY = el*sin(psi);
     
     }
-    WriteCurrentPosition();
     auto end = chrono::high_resolution_clock::now();
-    WriteHistoireTime(start, end);
 }
 //____________________________________________________________________________________________
 Material* Neutron::GetMaterial()
@@ -181,5 +179,8 @@ void Neutron::GetPositions(double position[2])
     position[0] = Neutron_PosX;
     position[1] = Neutron_PosY;
 } 
-
-
+//____________________________________________________________________________________________
+double Neutron::GetEnergy()
+{
+    return Neutron_Eactu;
+}

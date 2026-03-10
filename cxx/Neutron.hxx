@@ -28,6 +28,7 @@ class Neutron
     void BuildTrajectory();
     Material* GetMaterial();
     void GetPositions(double position[2]);
+    double GetEnergy();
 
 
 

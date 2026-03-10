@@ -43,6 +43,17 @@ int main()
     double FinalEnergy = 1.0;                       // final energy set to 1 eV (for which the average number of collisions is wanted)
     
     SlowingDownNeutron->InitEnergies(StartEnergy, FinalEnergy);
+
+    // Stockage ram
+    vector<int> store_chocs;
+    vector<double> store_x;
+    vector<double> store_y;
+    vector<double> store_e;
+    store_chocs.reserve(NombreDeTrajectoire);
+    store_x.reserve(NombreDeTrajectoire);
+    store_y.reserve(NombreDeTrajectoire);
+    store_e.reserve(NombreDeTrajectoire);
+
     auto start = chrono::high_resolution_clock::now();
     SlowingDownNeutron->BuildTrajectory(); //initialisation: histoire n°0
 
@@ -58,14 +69,34 @@ int main()
         SlowingDownNeutron->BuildTrajectory();
         
         mean += ( SlowingDownNeutron->GetDiffuNumber() );
+
+        // Sauvegarde des données en mémoire vive
+        store_chocs.push_back(SlowingDownNeutron->GetDiffuNumber());
+        double pos[2];
+        SlowingDownNeutron->GetPositions(pos);
+        store_x.push_back(pos[0]);
+        store_y.push_back(pos[1]);
+        store_e.push_back(SlowingDownNeutron->GetEnergy());
     }
-    auto end = chrono::high_resolution_clock::now();
-    double duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+
 
     mean /= NombreDeTrajectoire;
+    
+
+    // Ecriture post calculs
+    string OutputFileName = DataDirName + "/SlowingDownNeutron.dat";
+    ofstream OutputFile(OutputFileName.c_str());
+    OutputFile << "nChocs,x,y,Energie" << "\n";
+    
+    for(int i = 0; i < NombreDeTrajectoire; i++)
+    {
+        OutputFile << store_chocs[i] << "," << store_x[i] << "," 
+                   << store_y[i] << "," << store_e[i] << "\n";
+    }
+    OutputFile.close();
+
+    auto end = chrono::high_resolution_clock::now();
+    double duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
     cout << "Le temps de calcul est " << duration << " millisecondes" << endl;
     cout << "Le nombre moyen d'impact est " << mean << endl;
-
 }
-
-
